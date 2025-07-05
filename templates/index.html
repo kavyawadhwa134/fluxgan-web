@@ -6,167 +6,245 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     :root {
-      --accent: #0077b6;
-      --bg: #f1f3f5;
-      --card: #ffffff;
-      --shadow: rgba(0, 0, 0, 0.1);
+      --light-bg: #f1f3f5;
+      --light-card: white;
+      --light-text: #000;
+      --light-accent: #0077b6;
+      --light-box: #e7f5ff;
+
+      --dark-bg: #0d1b2a;
+      --dark-card: #1b263b;
+      --dark-text: #e0e1dd;
+      --dark-accent: #00b4d8;
+      --dark-box: #1a2b3d;
+    }
+
+    body[data-theme="light"] {
+      background-color: var(--light-bg);
+      color: var(--light-text);
+    }
+
+    body[data-theme="dark"] {
+      background-color: var(--dark-bg);
+      color: var(--dark-text);
     }
 
     body {
       margin: 0;
-      padding: 0;
       font-family: "Segoe UI", sans-serif;
-      background-color: var(--bg);
-    }
-
-    .wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
       padding: 40px 20px;
-      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      transition: background 0.3s, color 0.3s;
     }
 
     .card {
-      background-color: var(--card);
-      border-radius: 10px;
+      border-radius: 12px;
       padding: 30px 40px;
-      box-shadow: 0 8px 16px var(--shadow);
-      max-width: 500px;
+      max-width: 600px;
       width: 100%;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      position: relative;
+      transition: background 0.3s;
+    }
+
+    body[data-theme="light"] .card {
+      background: var(--light-card);
+    }
+
+    body[data-theme="dark"] .card {
+      background: var(--dark-card);
+    }
+
+    .title-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
     }
 
     h1 {
-      margin-bottom: 20px;
-      font-size: 28px;
-      color: var(--accent);
-      text-align: center;
+      font-size: 24px;
+      margin: 0;
+    }
+
+    .reactor-toggle {
+      display: flex;
+      gap: 10px;
+    }
+
+    .reactor-btn {
+      padding: 8px 14px;
+      font-size: 15px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .reactor-btn.active {
+      background-color: #00b4d8;
+      color: #000;
+    }
+
+    .reactor-btn.inactive {
+      background-color: transparent;
+      color: inherit;
+      border: 2px solid currentColor;
     }
 
     label {
-      font-weight: 600;
       display: block;
-      margin-top: 15px;
-      margin-bottom: 5px;
+      margin-top: 20px;
+      font-weight: bold;
     }
 
     input[type="range"] {
       width: 100%;
+      margin-top: 10px;
     }
 
     .range-value {
-      margin-top: 8px;
-      font-size: 16px;
-      color: #333;
+      font-size: 15px;
+      margin-top: 6px;
+      text-align: right;
     }
 
-    button {
-      margin-top: 20px;
-      padding: 12px;
+    button.submit-btn {
       width: 100%;
-      background-color: var(--accent);
-      color: white;
+      margin-top: 25px;
+      padding: 12px;
+      background: #00b4d8;
       border: none;
+      color: #000;
       border-radius: 6px;
       font-size: 16px;
+      font-weight: bold;
       cursor: pointer;
-      transition: background 0.2s ease;
-    }
-
-    button:hover {
-      background-color: #005f86;
+      transition: background 0.2s;
     }
 
     .output-box {
-      margin-top: 30px;
-      background: #e7f5ff;
-      padding: 15px 20px;
-      border-left: 5px solid var(--accent);
+      margin-top: 25px;
+      padding: 15px;
+      border-left: 5px solid #00b4d8;
       border-radius: 8px;
-      font-size: 16px;
+      background: rgba(0, 180, 216, 0.05);
+      font-size: 15px;
     }
 
     .error {
       color: red;
-      margin-top: 20px;
+      margin-top: 15px;
     }
 
     footer {
-      margin-top: 50px;
+      margin-top: 40px;
+      text-align: center;
       font-size: 13px;
-      color: #888;
+    }
+
+    footer a {
+      color: #00b4d8;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
-<body>
-  <div class="wrapper">
-    <div class="card">
-      <h1>FluxGAN: Neutronics Surrogate Tool</h1>
-      <form id="predictForm">
-        <label for="enrichment">Fuel Enrichment (%)</label>
-        <input
-          type="range"
-          id="enrichment"
-          name="enrichment"
-          min="0"
-          max="90"
-          step="0.1"
-          value="3.5"
-          oninput="updateSlider(this.value)"
-        />
-        <div class="range-value">Selected: <span id="rangeValue">3.5</span>%</div>
-
-        <button type="submit">Predict Neutron Flux</button>
-      </form>
-
-      <div id="output" class="output-box" style="display: none;"></div>
-      <div id="error" class="error"></div>
+<body data-theme="light">
+  <div class="card">
+    <div class="title-bar">
+      <h1>FluxGAN: Neutronics Tool</h1>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div class="reactor-toggle">
+          <button class="reactor-btn active" data-reactor="phwr">🇮🇳 PHWR</button>
+          <button class="reactor-btn inactive" data-reactor="lwr">🇺🇸 LWR</button>
+        </div>
+        <button id="themeToggle" title="Toggle Theme" style="font-size: 20px; border: none; background: none; cursor: pointer;">
+          🌙
+        </button>
+      </div>
     </div>
 
+    <form id="predictForm">
+      <label for="enrichment">Fuel Enrichment (%)</label>
+      <input type="range" id="enrichment" name="enrichment" min="0" max="90" step="0.1" value="3.5" oninput="updateSlider(this.value)" />
+      <div class="range-value">Selected: <span id="rangeValue">3.5</span>%</div>
+
+      <button type="submit" class="submit-btn">🚀 Predict Neutron Flux</button>
+    </form>
+
+    <div id="output" class="output-box" style="display: none;"></div>
+    <div id="error" class="error"></div>
+
     <footer>
-      Built with 💡 using OpenMC + PyTorch | FluxGAN © 2025
+      Developed by <a href="https://www.linkedin.com/in/kavyawadhwa" target="_blank">Kavya Wadhwa</a> | Built with OpenMC + PyTorch | FluxGAN &copy; 2025
     </footer>
   </div>
 
   <script>
+    let reactor = "phwr";
+
+    document.querySelectorAll(".reactor-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".reactor-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".reactor-btn").forEach(b => b.classList.add("inactive"));
+        btn.classList.remove("inactive");
+        btn.classList.add("active");
+        reactor = btn.getAttribute("data-reactor");
+      });
+    });
+
     function updateSlider(value) {
       document.getElementById("rangeValue").innerText = value;
     }
 
-    const form = document.getElementById("predictForm");
-    const output = document.getElementById("output");
-    const errorBox = document.getElementById("error");
-
-    form.addEventListener("submit", function (e) {
+    document.getElementById("predictForm").addEventListener("submit", function (e) {
       e.preventDefault();
-
       const enrichment = document.getElementById("enrichment").value;
+      const output = document.getElementById("output");
+      const error = document.getElementById("error");
 
       fetch("/predict", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: `enrichment=${encodeURIComponent(enrichment)}`,
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `enrichment=${encodeURIComponent(enrichment)}&reactor=${reactor}`
       })
         .then((res) => res.json())
         .then((data) => {
           if (data.error) {
             output.style.display = "none";
-            errorBox.innerText = data.error;
+            error.innerText = data.error;
           } else {
             output.innerHTML = `
-              <strong>Input Enrichment:</strong> ${data.enrichment}%<br>
-              <strong>Predicted Neutron Flux:</strong> ${data.flux}
+              <strong>Reactor:</strong> ${data.reactor}<br>
+              <strong>Enrichment:</strong> ${data.enrichment}%<br>
+              <strong>Predicted Flux:</strong> ${data.flux} n/cm²/s
             `;
             output.style.display = "block";
-            errorBox.innerText = "";
+            error.innerText = "";
           }
         })
-        .catch((err) => {
-          errorBox.innerText = "Server error or invalid response.";
+        .catch(() => {
           output.style.display = "none";
+          error.innerText = "Server error or invalid response.";
         });
+    });
+
+    // Theme toggle
+    const themeBtn = document.getElementById("themeToggle");
+    const body = document.body;
+
+    themeBtn.addEventListener("click", () => {
+      const currentTheme = body.getAttribute("data-theme");
+      const newTheme = currentTheme === "light" ? "dark" : "light";
+      body.setAttribute("data-theme", newTheme);
+      themeBtn.innerText = newTheme === "dark" ? "☀️" : "🌙";
     });
   </script>
 </body>
